@@ -5,13 +5,16 @@
 ### TypeScript / Frontend
 - [typescript-stack.md](typescript-stack.md): TS monorepo foundations — Bun, Turborepo, naming, strict mode
 - [nextjs-patterns.md](nextjs-patterns.md): Next.js 15 App Router — layouts, route groups, middleware, server/client
-- [hono-api-routes.md](hono-api-routes.md): Hono API routes — two-file pattern, Zod validation, RPC, auth middleware
-- [drizzle-schema.md](drizzle-schema.md): Drizzle ORM — schema declaration, relations, Neon clients, migrations
+- [hono-api-routes.md](hono-api-routes.md): Hono API routes — two-file pattern, Zod validation, RPC, middleware composition, dual auth
+- [drizzle-schema.md](drizzle-schema.md): Drizzle ORM — schema declaration, relations, Neon clients, CUID2, materialized paths
 - [tanstack-query.md](tanstack-query.md): TanStack Query v5 — hooks, query keys, mutations, caching, invalidation
 - [react-components.md](react-components.md): React component patterns — feature modules, state, forms, data tables
 - [shadcn-ui.md](shadcn-ui.md): Shadcn/UI + Tailwind — CVA variants, theming, CSS variables, chart config
 - [monorepo-packages.md](monorepo-packages.md): Monorepo packages — Turborepo config, Bun workspaces, internal packages
-- [authentication.md](authentication.md): Auth (Clerk) — middleware, org-level multi-tenancy, product gating
+- [authentication.md](authentication.md): Auth (Clerk) — middleware, API key auth, scope-based authorization, multi-tenancy
+- [ai-sdk-patterns.md](ai-sdk-patterns.md): Vercel AI SDK — streaming, tool calling, multi-model, structured output
+- [testing-patterns.md](testing-patterns.md): Testing — Vitest config, mocking, Playwright E2E, component tests
+- [mcp-patterns.md](mcp-patterns.md): MCP server — tool registration, Zod schemas, scope auth, structured responses
 
 ### Python / Backend
 - [python-stack.md](python-stack.md): Python stack overview — Flask, uv, deployment, logging, CLI patterns

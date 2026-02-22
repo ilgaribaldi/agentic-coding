@@ -60,14 +60,14 @@ Each package uses explicit `exports` in `package.json`:
 
 ```typescript
 // Good: subpath imports
-import { locationSchema } from "@scope/api/schemas/locations"
-import { useGetLocations } from "@scope/api/hooks/locations"
+import { <resource>Schema } from "@scope/api/schemas/<resource>"
+import { useGet<Resource> } from "@scope/api/hooks/<resource>"
 import { Button } from "@scope/ui/button"
 import { formatDate } from "@scope/utils/dates"
 import { statusOptions } from "@scope/constants/lookup"
 
 // Avoid: barrel imports (less tree-shakeable)
-import { locationSchema } from "@scope/api"
+import { <resource>Schema } from "@scope/api"
 ```
 
 ## Package Responsibilities
@@ -78,8 +78,8 @@ import { locationSchema } from "@scope/api"
 | `@scope/api` | Zod schemas, React Query hooks, shared client | Peer deps on React + TanStack |
 | `@scope/ui` | Shadcn components (`*.tsx`) | Peer deps on React, Tailwind, lucide-react |
 | `@scope/config` | Tailwind preset, TypeScript base configs | Pure config — no React deps |
-| `@scope/utils` | Date, unit, alert, CSV, map utilities | Depends on `@scope/api` + `@scope/constants` |
-| `@scope/constants` | Weather, risk, agriculture constants | **Pure constants** — no server deps |
+| `@scope/utils` | Date, format, CSV, map utilities | Depends on `@scope/api` + `@scope/constants` |
+| `@scope/constants` | Domain-specific constants, enums, lookup tables | **Pure constants** — no server deps |
 
 ## Import Boundaries
 

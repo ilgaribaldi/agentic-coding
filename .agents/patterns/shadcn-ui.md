@@ -85,7 +85,7 @@ module.exports = {
   darkMode: ["class"],
   theme: {
     extend: {
-      fontFamily: { sans: ["Roboto"], heading: ["Poppins"], mono: ["Outfit"] },
+      fontFamily: { sans: ["<sans-font>"], heading: ["<heading-font>"], mono: ["<mono-font>"] },
       keyframes: { "accordion-down": {}, "aurora": {}, "grid": {} },
       animation: { "accordion-down": "accordion-down 0.2s ease-out" },
     },
@@ -112,8 +112,8 @@ Content paths include packages: `"../../packages/ui/src/**/*.{ts,tsx}"`
 
 // Chart config maps data keys to labels/colors
 const chartConfig: ChartConfig = {
-  temperature: { label: "Temperature", color: "hsl(var(--chart-1))" },
-  precipitation: { label: "Precipitation", color: "hsl(var(--chart-2))" },
+  <metric-a>: { label: "<Metric A>", color: "hsl(var(--chart-1))" },
+  <metric-b>: { label: "<Metric B>", color: "hsl(var(--chart-2))" },
 }
 ```
 

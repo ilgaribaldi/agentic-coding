@@ -395,14 +395,14 @@ export default defineConfig({
 // main.ts
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient("myapp", process.execPath, [path.resolve(process.argv[1])])
+    app.setAsDefaultProtocolClient("<app-protocol>", process.execPath, [path.resolve(process.argv[1])])
   }
 } else {
-  app.setAsDefaultProtocolClient("myapp")
+  app.setAsDefaultProtocolClient("<app-protocol>")
 }
 
 app.on("open-url", (event, url) => {
-  // Handle myapp://path/to/resource
+  // Handle <app-protocol>://path/to/resource
   const parsed = new URL(url)
   // Route to appropriate window/view
 })

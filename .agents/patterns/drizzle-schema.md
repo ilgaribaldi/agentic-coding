@@ -49,6 +49,7 @@ export const itemsRelations = relations(items, ({ one, many }) => ({
 | Type | Pattern |
 |------|---------|
 | UUID PK | `text("id").primaryKey().$defaultFn(() => crypto.randomUUID())` |
+| CUID2 PK | `text("id").primaryKey().$defaultFn(() => createId())` |
 | Timestamps | `timestamp("createdAt", { mode: "date" }).defaultNow().notNull()` |
 | Enums | `pgEnum("name", [...])` then `nameEnum("col").notNull()` |
 | Numeric | `real("lat")`, `numeric("value")`, `integer("year")` |
@@ -56,6 +57,23 @@ export const itemsRelations = relations(items, ({ one, many }) => ({
 | Geospatial | `geometry("geom", { type: "multipolygon", srid: 4326 }).notNull()` |
 | FK | `text("orgId").references(() => orgs.id, { onDelete: "cascade" })` |
 | Soft delete | `timestamp("deletedAt", { mode: "date" })` |
+
+### CUID2 Primary Keys
+
+CUID2 is a collision-resistant, sortable ID. Preferred over UUID for distributed systems:
+
+```typescript
+import { init } from "@paralleldrive/cuid2"
+
+const createId = init({ length: 24 })
+
+export const items = pgTable("item", {
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  // ...
+})
+```
+
+**Why CUID2 over UUID**: Sortable by creation time, shorter, no dashes, database-index-friendly.
 
 ## Database Clients (Neon)
 
@@ -137,6 +155,63 @@ export default defineConfig({
   out: "./drizzle",
 })
 ```
+
+## Advanced Schema Patterns
+
+### Materialized Paths (Tree Structures)
+
+Store the full path as a column for fast tree queries without recursive joins:
+
+```typescript
+export const <nodes> = pgTable("<node>", {
+  id: text("id").primaryKey().$defaultFn(() => createId()),
+  name: text("name").notNull(),
+  parentId: text("parentId").references(() => <nodes>.id, { onDelete: "cascade" }),
+  path: text("path").notNull(),      // e.g., "/<root>/<parent>/<child>"
+  depth: integer("depth").default(0).notNull(),
+  ownerId: text("ownerId").notNull(),
+}, (table) => ({
+  ownerPathIdx: uniqueIndex("<node>_owner_path_idx").on(table.ownerId, table.path),
+  parentIdx: index("<node>_parent_idx").on(table.parentId),
+}))
+```
+
+**Query a subtree**: `WHERE path LIKE '/<root>/<parent>/%'`
+**Move a subtree**: Update `path` prefix for all descendants in one query.
+**Works for**: file trees, category hierarchies, org charts, nested comments, menu structures.
+
+### Workspace Scoping (Multi-tenancy)
+
+Scope data to personal or organization workspaces using nullable `orgId`:
+
+```typescript
+// Personal workspace: orgId IS NULL, scoped to user
+const personal = await db.select().from(<table>)
+  .where(and(eq(<table>.userId, userId), isNull(<table>.orgId)))
+
+// Org workspace: orgId = specific org
+const orgScoped = await db.select().from(<table>)
+  .where(eq(<table>.orgId, orgId))
+```
+
+This pattern lets the same table serve both personal and team data without separate tables.
+
+### Composite Unique Constraints
+
+Prevent duplicates across multiple columns:
+
+```typescript
+export const <junction-table> = pgTable("<junction>", {
+  id: text("id").primaryKey(),
+  <fk-a>: text("<fk-a>").notNull(),
+  <fk-b>: text("<fk-b>").notNull(),
+  <attribute>: text("<attribute>").default("<default>").notNull(),
+}, (table) => ({
+  uniqueEntry: uniqueIndex("<junction>_unique").on(table.<fk-a>, table.<fk-b>),
+}))
+```
+
+Use for: membership tables, tag assignments, unique slug-per-tenant, and any N:M relationship that should be deduplicated.
 
 ## Package Boundary
 

@@ -9,13 +9,16 @@
 ### Patterns — TypeScript / Frontend
 - [typescript-stack.md](patterns/typescript-stack.md): TS monorepo foundations — Bun, Turborepo, naming, strict mode
 - [nextjs-patterns.md](patterns/nextjs-patterns.md): Next.js 15 App Router — layouts, route groups, middleware, server/client
-- [hono-api-routes.md](patterns/hono-api-routes.md): Hono API routes — two-file pattern, Zod validation, RPC, auth middleware
-- [drizzle-schema.md](patterns/drizzle-schema.md): Drizzle ORM — schema declaration, relations, Neon clients, migrations
+- [hono-api-routes.md](patterns/hono-api-routes.md): Hono API routes — two-file pattern, Zod validation, RPC, middleware composition, dual auth
+- [drizzle-schema.md](patterns/drizzle-schema.md): Drizzle ORM — schema declaration, relations, Neon clients, CUID2, materialized paths
 - [tanstack-query.md](patterns/tanstack-query.md): TanStack Query v5 — hooks, query keys, mutations, caching, invalidation
 - [react-components.md](patterns/react-components.md): React component patterns — feature modules, state, forms, data tables
 - [shadcn-ui.md](patterns/shadcn-ui.md): Shadcn/UI + Tailwind — CVA variants, theming, CSS variables, chart config
 - [monorepo-packages.md](patterns/monorepo-packages.md): Monorepo packages — Turborepo config, Bun workspaces, internal packages
-- [authentication.md](patterns/authentication.md): Auth (Clerk) — middleware, org-level multi-tenancy, product gating
+- [authentication.md](patterns/authentication.md): Auth (Clerk) — middleware, API key auth, scope-based authorization, multi-tenancy
+- [ai-sdk-patterns.md](patterns/ai-sdk-patterns.md): Vercel AI SDK — streaming, tool calling, multi-model, structured output
+- [testing-patterns.md](patterns/testing-patterns.md): Testing — Vitest config, mocking, Playwright E2E, component tests
+- [mcp-patterns.md](patterns/mcp-patterns.md): MCP server — tool registration, Zod schemas, scope auth, structured responses
 
 ### Patterns — Python / Backend
 - [python-stack.md](patterns/python-stack.md): Python stack overview — Flask, uv, deployment, logging, CLI patterns
@@ -81,9 +84,17 @@ Master index for the agentic-coding knowledge base. All patterns, agents, skills
 | NumPy | data-science-patterns.md | — |
 | joblib | data-science-patterns.md | — |
 | uv | python-stack.md | — |
-| Zod | hono-api-routes.md | tanstack-query.md |
+| Zod | hono-api-routes.md | tanstack-query.md, ai-sdk-patterns.md, mcp-patterns.md |
 | React Hook Form | react-components.md | — |
 | Recharts | shadcn-ui.md | — |
+| Vercel AI SDK | ai-sdk-patterns.md | — |
+| OpenAI / Anthropic / Google | ai-sdk-patterns.md | — |
+| MCP (Model Context Protocol) | mcp-patterns.md | — |
+| Vitest | testing-patterns.md | — |
+| Playwright | testing-patterns.md | — |
+| Testing Library | testing-patterns.md | — |
+| CUID2 | drizzle-schema.md | — |
+| dnd-kit | documentation-links.md | — |
 
 ## Do / Don't
 

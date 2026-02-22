@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```typescript
 "use client"
 import { SidebarLayout } from "@/components/sidebar"
-import { useInvalidateOnOrgChange } from "@/features/organizations/api/use-invalidate-on-org-change"
+import { useInvalidateOnOrgChange } from "@/features/<domain>/api/use-invalidate-on-org-change"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   useInvalidateOnOrgChange() // Clear cache on org switch
@@ -91,7 +91,7 @@ export default function FeaturePage() {
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 
 const adminMatcher = createRouteMatcher(["/admin(.*)"])
-const protectedMatcher = createRouteMatcher(["/dashboard(.*)", "/locations(.*)"])
+const protectedMatcher = createRouteMatcher(["/dashboard(.*)", "/<feature>(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
   if (req.nextUrl.pathname === "/") {

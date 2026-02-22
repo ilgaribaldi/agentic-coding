@@ -70,8 +70,8 @@ Hierarchical, include all variables used in `queryFn`:
 // With filters
 ["resource-list", orgId, { search, sort, page }]
 
-// Nested
-["order-history", userId, status, startDate, endDate]
+// Nested (multiple filter dimensions)
+["<resource>-history", userId, status, startDate, endDate]
 
 // Factory pattern for complex domains
 const QUERY_KEYS = {
@@ -102,9 +102,9 @@ enabled: enabled && !!id
 queryClient.invalidateQueries({ queryKey: ["resource"] })
 
 // Multiple related invalidations
-queryClient.invalidateQueries({ queryKey: ["orders-table"] })
-queryClient.invalidateQueries({ queryKey: ["orders-map"] })
-queryClient.invalidateQueries({ queryKey: ["orders-summary"] })
+queryClient.invalidateQueries({ queryKey: ["<resource>-table"] })
+queryClient.invalidateQueries({ queryKey: ["<resource>-map"] })
+queryClient.invalidateQueries({ queryKey: ["<resource>-summary"] })
 
 // On org change — clear everything
 queryClient.cancelQueries({ queryKey: ["domain"] })

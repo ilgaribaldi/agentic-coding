@@ -9,43 +9,43 @@ import xarray as xr
 
 # Lazy load from Zarr store on S3
 ds = xr.open_zarr(
-    "s3://bucket/path/dataset.zarr",
+    "s3://<bucket>/<path>/<dataset>.zarr",
     consolidated=True,
 )
 # Data loads lazily — computation deferred until .compute() or .values
 
 # With explicit credentials
 ds = xr.open_zarr(
-    "s3://bucket/path/dataset.zarr",
+    "s3://<bucket>/<path>/<dataset>.zarr",
     storage_options={"anon": False},  # Uses AWS credentials from environment
 )
 ```
 
 ### Dataset Stitching Pipeline
 
-Combine multiple data sources along the time dimension (e.g., reanalysis → blended → short-range forecast → long-range forecast → climatology):
+Combine multiple data sources along a dimension (e.g., historical → blended → short-range → long-range → fallback):
 
 ```python
 def get_inference_dataset(self) -> xr.Dataset:
-    """Stitch: source_a → blended → forecast_short → forecast_long → climatology."""
+    """Stitch: <source-a> → <source-b> → <source-c> → <source-d> → <fallback>."""
 
-    source_a = self.get_source_a(start_date="2000-01-01")
-    blended = self.get_blended()
-    forecast_short = self.get_forecast_short()
-    forecast_long = self.get_forecast_long()
-    climatology = self.get_climatology()  # Climatology backfill
+    source_a = self.get_source_a(start_date="<start-date>")
+    source_b = self.get_source_b()
+    source_c = self.get_source_c()
+    source_d = self.get_source_d()
+    fallback = self.get_fallback()
 
     # Expand ensemble members to match (N members)
-    source_a_expanded = xr.concat([blended_combined] * N_MEMBERS, dim="member")
-    forecast_short_expanded = self._expand_ensemble_members(forecast_short, members_to_add=20)
+    source_a_expanded = xr.concat([source_a] * N_MEMBERS, dim="<ensemble-dim>")
+    source_c_expanded = self._expand_ensemble_members(source_c, members_to_add=20)
 
-    # Stack along time axis
+    # Stack along primary axis
     stitched = xr.concat(
-        [source_a_expanded, forecast_short_expanded, forecast_long, climatology],
-        dim="time",
+        [source_a_expanded, source_c_expanded, source_d, fallback],
+        dim="<time-dim>",
     )
 
-    return stitched  # Shape: (member=N, number=locations, time=days)
+    return stitched  # Shape: (<ensemble>=N, <location>=L, <time>=T)
 ```
 
 ### NaN Handling
@@ -63,7 +63,7 @@ def _forward_fill_dataset(ds: xr.Dataset) -> xr.Dataset:
     """Forward fill NaNs along time dimension."""
     ds_filled = ds.copy(deep=True)
     for var in ds.data_vars:
-        ds_filled[var] = ds[var].ffill(dim="time")
+        ds_filled[var] = ds[var].ffill(dim="<time-dim>")
     return ds_filled
 ```
 
@@ -71,32 +71,32 @@ def _forward_fill_dataset(ds: xr.Dataset) -> xr.Dataset:
 
 ```python
 # Time slicing
-ds_slice = ds.sel(time=slice("2020-01", "2024-12"))
+ds_slice = ds.sel(<time-dim>=slice("<start>", "<end>"))
 
 # Monthly resampling
-monthly_mean = ds.resample(time="M").mean()
+monthly_mean = ds.resample(<time-dim>="M").mean()
 
 # Seasonal groupby
-seasonal = ds.groupby("time.season").mean()
+seasonal = ds.groupby("<time-dim>.season").mean()
 
 # Point selection (nearest neighbor)
-point = ds.sel(lat=40.0, lon=-105.0, method="nearest")
+point = ds.sel(<dim-a>=<value-a>, <dim-b>=<value-b>, method="nearest")
 
 # Bounding box
-region = ds.sel(lat=slice(30, 50), lon=slice(-120, -100))
+region = ds.sel(<dim-a>=slice(<min>, <max>), <dim-b>=slice(<min>, <max>))
 ```
 
 ### Writing
 
 ```python
 # Local
-ds.to_zarr("output.zarr", mode="w")
+ds.to_zarr("<output>.zarr", mode="w")
 
-# Append along time
-ds_new.to_zarr("output.zarr", mode="a", append_dim="time")
+# Append along dimension
+ds_new.to_zarr("<output>.zarr", mode="a", append_dim="<time-dim>")
 
 # Cloud
-ds.to_zarr("s3://bucket/output.zarr", storage_options={...})
+ds.to_zarr("s3://<bucket>/<output>.zarr", storage_options={...})
 ```
 
 ## Lazy Loading with Caching
@@ -111,27 +111,27 @@ class DataEngine:
     s3_path: str
     _cache: dict = field(default_factory=dict, repr=False)
 
-    def get_source_a(self, start_date: str | None = None) -> xr.Dataset:
-        """Load source_a data, cached after first access."""
-        cache_key = f"source_a_{start_date}"
+    def get_source(self, name: str, start_date: str | None = None) -> xr.Dataset:
+        """Load a data source, cached after first access."""
+        cache_key = f"{name}_{start_date}"
         if cache_key not in self._cache:
-            ds = xr.open_zarr(f"{self.s3_path}/source_a.zarr")
+            ds = xr.open_zarr(f"{self.s3_path}/{name}.zarr")
             if start_date:
-                ds = ds.sel(time=slice(start_date, None))
+                ds = ds.sel(<time-dim>=slice(start_date, None))
             self._cache[cache_key] = ds
         return self._cache[cache_key]
 ```
 
-## NumPy Risk Computation
+## NumPy Tensor Computation
 
 ### Tensor Organization
 
-Standard shape for risk tensors: `(member, number, time, season)`
+Standard shape for multi-dimensional tensors: `(<ensemble>, <location>, <time>, <period>)`
 
-- `member`: Ensemble members (N members — set by the ensemble source used)
-- `number`: Locations
-- `time`: Days within season
-- `season`: Historical seasons (e.g., 20 years)
+- `<ensemble>`: Ensemble members (N members — set by the source used)
+- `<location>`: Spatial locations
+- `<time>`: Steps within period
+- `<period>`: Historical periods (e.g., 20 years)
 
 ### Rolling Aggregations (cumsum trick)
 
@@ -149,7 +149,7 @@ def rolling_sum(values: np.ndarray, window: int, axis: int = 2) -> np.ndarray:
     return cumsum[tuple(slices_after)] - cumsum[tuple(slices_before)]
 
 def rolling_mean(values: np.ndarray, window: int = 5, axis: int = 2) -> np.ndarray:
-    """5-day rolling mean using cumsum trick."""
+    """N-day rolling mean using cumsum trick."""
     pad_width = [(0, 0)] * values.ndim
     pad_width[axis] = (window - 1, 0)
     padded = np.pad(values, pad_width, mode="constant", constant_values=0)
@@ -165,14 +165,14 @@ def rolling_mean(values: np.ndarray, window: int = 5, axis: int = 2) -> np.ndarr
 ### Threshold-Based Index
 
 ```python
-def heat_index(tensor: np.ndarray, threshold: float) -> np.ndarray:
-    """Exceedance above threshold. Shape: (member, number, time, season)."""
+def exceedance_index(tensor: np.ndarray, threshold: float) -> np.ndarray:
+    """Exceedance above threshold. Shape: (<ensemble>, <location>, <time>, <period>)."""
     return np.maximum(tensor - threshold, 0)
 
-def drought_index(wb_current: np.ndarray, wb_reference: np.ndarray) -> np.ndarray:
-    """Water balance deficit (historical - current, clipped to positive)."""
-    wb_ref_expanded = wb_reference[..., np.newaxis]  # Broadcast for season dim
-    deficit = wb_ref_expanded - wb_current
+def deficit_index(current: np.ndarray, reference: np.ndarray) -> np.ndarray:
+    """Deficit (reference - current, clipped to positive)."""
+    ref_expanded = reference[..., np.newaxis]  # Broadcast for extra dim
+    deficit = ref_expanded - current
     return np.clip(deficit, a_min=0, a_max=None)
 ```
 
@@ -211,41 +211,41 @@ def percentile_rank(
     historical: np.ndarray,
 ) -> np.ndarray:
     """Rank current values against historical distribution."""
-    # current: (members, locations, days)
-    # historical: (seasons, locations, days)
+    # current: (<ensemble>, <location>, <time>)
+    # historical: (<period>, <location>, <time>)
 
     result = np.zeros_like(current)
     for loc in range(current.shape[1]):
-        for day in range(current.shape[2]):
-            ref = historical[:, loc, day]
-            curr = current[:, loc, day]
-            result[:, loc, day] = stats.percentileofscore(
+        for step in range(current.shape[2]):
+            ref = historical[:, loc, step]
+            curr = current[:, loc, step]
+            result[:, loc, step] = stats.percentileofscore(
                 ref, curr, kind="rank", nan_policy="propagate"
             )
     return result
 ```
 
-### Member Aggregation (Quantiles)
+### Ensemble Aggregation (Quantiles)
 
 ```python
-def aggregate_members(
-    risk: np.ndarray,
-    risk_bounds: tuple[float, float] = (70, 90),
+def aggregate_ensemble(
+    values: np.ndarray,
+    threshold_bounds: tuple[float, float] = (70, 90),
     quantile_bounds: tuple[float, float] = (0.05, 0.95),
 ) -> dict:
     """Aggregate ensemble members using quantiles and probability bins."""
-    lower, upper = np.nanquantile(risk, quantile_bounds)
-    total = len(risk)
+    lower, upper = np.nanquantile(values, quantile_bounds)
+    total = len(values)
 
     return {
-        "percentile_mean": float(np.nanmean(risk)),
+        "percentile_mean": float(np.nanmean(values)),
         "percentile_lower": float(lower),
         "percentile_upper": float(upper),
-        "high_prob": float((risk > risk_bounds[1]).sum() / total),
+        "high_prob": float((values > threshold_bounds[1]).sum() / total),
         "mid_prob": float(
-            ((risk >= risk_bounds[0]) & (risk <= risk_bounds[1])).sum() / total
+            ((values >= threshold_bounds[0]) & (values <= threshold_bounds[1])).sum() / total
         ),
-        "low_prob": float((risk < risk_bounds[0]).sum() / total),
+        "low_prob": float((values < threshold_bounds[0]).sum() / total),
     }
 ```
 
@@ -254,12 +254,12 @@ def aggregate_members(
 ```python
 from joblib import Parallel, delayed
 
-def process_categories(categories: list[str], model, n_jobs: int = 1) -> dict:
-    """Process multiple categories in parallel."""
+def process_items(items: list[str], model, n_jobs: int = 1) -> dict:
+    """Process multiple items in parallel."""
     results_list = Parallel(n_jobs=n_jobs)(
-        delayed(model.process_category)(category) for category in categories
+        delayed(model.process_item)(item) for item in items
     )
-    return dict(zip(categories, results_list))
+    return dict(zip(items, results_list))
 ```
 
 - `n_jobs=1`: Sequential (debug mode)
@@ -326,20 +326,20 @@ def get_historical_period_dates(
 
 ```python
 def parse_results_to_db(
-    model_id: str,
+    <resource>_id: str,
     results: dict,
-    agent,
+    client,
 ) -> list[dict]:
     """Convert computation results to database payload format."""
     records = []
 
     for _, row in results["historical"].iterrows():
         records.append({
-            "modelId": model_id,
-            "categoryId": agent.get_category(row["category_name"])["id"],
+            "<resource>Id": <resource>_id,
+            "<category>Id": client.get_category(row["<category>_name"])["id"],
             "value": float(row["value"]),
             "time": f"{int(row['year'])}-01-01",
-            "type": "SEASONAL",
+            "type": "<TYPE>",
             "probHigh": float(row["high_prob"]),
             "probMid": float(row["mid_prob"]),
             "probLow": float(row["low_prob"]),

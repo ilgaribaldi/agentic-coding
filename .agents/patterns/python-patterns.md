@@ -67,8 +67,8 @@ def _run_read(self, operation):
 with self._conn() as conn:
     with conn.cursor() as cur:
         cur.execute(
-            'SELECT * FROM "location" WHERE "modelId" = %s AND "active" = %s',
-            (model_id, True)
+            'SELECT * FROM "<table>" WHERE "<fk-column>" = %s AND "<flag>" = %s',
+            (<fk_value>, True)
         )
         rows = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
@@ -98,10 +98,10 @@ import uuid
 def add_records(self, records: list[dict], batch_size: int = 50000):
     """Batch insert with ON CONFLICT upsert."""
     insert_query = '''
-        INSERT INTO "myTable" ("id", "name", "value", "time")
+        INSERT INTO "<table>" ("id", "<col-a>", "<col-b>", "<col-c>")
         VALUES %s
-        ON CONFLICT ("name", "time")
-        DO UPDATE SET "value" = EXCLUDED."value"
+        ON CONFLICT ("<col-a>", "<col-c>")
+        DO UPDATE SET "<col-b>" = EXCLUDED."<col-b>"
         RETURNING "id"
     '''
 
@@ -113,9 +113,9 @@ def add_records(self, records: list[dict], batch_size: int = 50000):
                 data_tuples = [
                     (
                         str(uuid.uuid4()),
-                        row["name"],
-                        row["value"],
-                        row["time"],
+                        row["<col-a>"],
+                        row["<col-b>"],
+                        row["<col-c>"],
                     )
                     for row in batch
                 ]
@@ -140,8 +140,8 @@ from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
-class Location(db.Model):
-    __tablename__ = "locations"
+class <Model>(db.Model):
+    __tablename__ = "<table>"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
@@ -149,7 +149,7 @@ class Location(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
 
     # Relationships
-    records = relationship("SensorData", back_populates="location")
+    records = relationship("<RelatedModel>", back_populates="<parent>")
 ```
 
 ### Query Patterns
@@ -157,24 +157,24 @@ class Location(db.Model):
 ```python
 # Filtered query with ordering
 results = (
-    db.session.query(SensorData)
+    db.session.query(<Model>)
     .filter(
-        SensorData.granularity == "DAILY",
-        SensorData.variable.in_(["metric_a", "metric_b"]),
-        SensorData.lat_idx == lat_idx,
-        SensorData.time >= start_dt,
-        SensorData.time < end_dt,
+        <Model>.granularity == "<GRANULARITY>",
+        <Model>.variable.in_(["<var-a>", "<var-b>"]),
+        <Model>.<dim> == <dim_value>,
+        <Model>.time >= start_dt,
+        <Model>.time < end_dt,
     )
-    .order_by(SensorData.time)
+    .order_by(<Model>.time)
     .all()
 )
 
 # Aggregate query
-latest_version = (
-    db.session.query(ResourceAttributes, ResourceVersion)
-    .filter(ResourceVersion.attributes_key == ResourceAttributes.id)
-    .filter(ResourceVersion.status == 1)
-    .order_by(ResourceVersion.create_time.desc())
+latest = (
+    db.session.query(<ModelA>, <ModelB>)
+    .filter(<ModelB>.<fk> == <ModelA>.id)
+    .filter(<ModelB>.status == 1)
+    .order_by(<ModelB>.create_time.desc())
     .first()
 )
 ```
@@ -265,43 +265,43 @@ def process_items_parallel(
 ## Factory Pattern
 
 ```python
-class DatasetFactory:
-    """Route to correct model class based on dataset type."""
+class <Domain>Factory:
+    """Route to correct model class based on type."""
 
     @staticmethod
     def get_table(kind: str, scope: str | None):
-        if kind == "forecast":
-            if scope == "short_term":
-                return ShortTermForecast
-            if scope == "long_term":
-                return LongTermForecast
-            if scope == "composite":
-                return CompositeForecast
-        elif kind == "baseline":
-            return Baseline
-        elif kind == "historical":
-            return Historical
+        if kind == "<kind-a>":
+            if scope == "<scope-a>":
+                return <VariantA>
+            if scope == "<scope-b>":
+                return <VariantB>
+            if scope == "<scope-c>":
+                return <VariantC>
+        elif kind == "<kind-b>":
+            return <VariantD>
+        elif kind == "<kind-c>":
+            return <VariantE>
         raise ValueError(f"Unknown dataset: kind={kind}, scope={scope}")
 ```
 
 ## Service Pattern
 
 ```python
-class DataService:
+class <Domain>Service:
     """Service encapsulating business logic."""
 
     def __init__(self, session=None):
         self.session = session or db.session
 
-    def get_data(self, lat: float, lon: float, variables: list[str]) -> dict:
+    def get_data(self, <param-a>: float, <param-b>: float, variables: list[str]) -> dict:
         """Fetch data with caching and fallback logic."""
         # 1. Check cache
-        cached = self._check_cache(lat, lon, variables)
+        cached = self._check_cache(<param-a>, <param-b>, variables)
         if cached:
             return cached
 
         # 2. Query database
-        results = self._query_db(lat, lon, variables)
+        results = self._query_db(<param-a>, <param-b>, variables)
 
         # 3. Format response
         return self._format_response(results)
@@ -314,8 +314,8 @@ from flask_caching import Cache
 
 # Granularity-specific cache instances
 caches = {
-    "baseline_daily": Cache(config={"CACHE_DIR": "./cache/baseline_daily"}),
-    "historical_daily": Cache(config={"CACHE_DIR": "./cache/historical_daily"}),
+    "<category-a>": Cache(config={"CACHE_DIR": "./cache/<category-a>"}),
+    "<category-b>": Cache(config={"CACHE_DIR": "./cache/<category-b>"}),
     "default": Cache(config={"CACHE_DIR": "./cache/default"}),
 }
 
@@ -324,12 +324,12 @@ class CachingLayer:
         self.cache_key = f"{cache_key}_{granularity}"
         self.cache = caches.get(self.cache_key, caches["default"])
 
-    def process_response(self, lat, lon, variables, response_format):
+    def process_response(self, <param-a>, <param-b>, variables, response_format):
         """Check cache, fetch if miss, store result."""
         cached = self.cache.get(self.request_url)
         if cached:
             return cached
-        result = self._fetch_fresh(lat, lon, variables)
+        result = self._fetch_fresh(<param-a>, <param-b>, variables)
         self.cache.set(self.request_url, result)
         return result
 ```
@@ -350,7 +350,7 @@ def mock_db():
     mock_conn.cursor.return_value.__enter__ = lambda s: mock_cursor
     mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
 
-    with patch("mymodule.psycopg2.connect") as mock_connect:
+    with patch("<module>.psycopg2.connect") as mock_connect:
         mock_connect.return_value.__enter__ = lambda s: mock_conn
         mock_connect.return_value.__exit__ = MagicMock(return_value=False)
         yield mock_cursor
@@ -359,41 +359,41 @@ def mock_db():
 def sample_data():
     """Reusable test data."""
     return [
-        {"id": "loc-1", "lat": 40.7, "lon": -74.0},
-        {"id": "loc-2", "lat": 34.0, "lon": -118.2},
+        {"id": "<id-1>", "<field-a>": <value-a>, "<field-b>": <value-b>},
+        {"id": "<id-2>", "<field-a>": <value-c>, "<field-b>": <value-d>},
     ]
 ```
 
 ### Test Pattern
 
 ```python
-def test_get_locations(mock_db, sample_data):
-    """Test location retrieval."""
+def test_get_<resources>(mock_db, sample_data):
+    """Test <resource> retrieval."""
     mock_db.fetchall.return_value = [
-        (d["id"], d["lat"], d["lon"]) for d in sample_data
+        (d["id"], d["<field-a>"], d["<field-b>"]) for d in sample_data
     ]
-    mock_db.description = [("id",), ("latitude",), ("longitude",)]
+    mock_db.description = [("id",), ("<field-a>",), ("<field-b>",)]
 
-    result = agent.get_locations("model-123")
+    result = client.get_<resources>("<resource-id>")
 
     assert len(result) == 2
-    assert result[0]["id"] == "loc-1"
+    assert result[0]["id"] == "<id-1>"
     mock_db.execute.assert_called_once()
 ```
 
 ## Connection Reinit Pattern
 
 ```python
-def run_all_models(models: list[dict], connection_string: str, n_jobs: int):
-    """Process models with fresh connection per model."""
-    for model in models:
-        # Reinit to avoid stale connections between long-running models
-        agent = Agent(connection_string, verbose=False)
+def run_all(items: list[dict], connection_string: str, n_jobs: int):
+    """Process items with fresh connection per item."""
+    for item in items:
+        # Reinit to avoid stale connections between long-running tasks
+        client = <Client>(connection_string, verbose=False)
 
         try:
-            run_model(model["id"], agent, n_jobs)
+            process(item["id"], client, n_jobs)
         except Exception as e:
-            logging.error(f"Failed {model['id']}: {e}")
+            logging.error(f"Failed {item['id']}: {e}")
             continue
 ```
 

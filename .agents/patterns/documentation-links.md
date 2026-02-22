@@ -46,6 +46,28 @@ Comprehensive reference for all frameworks, libraries, and tools in the stack.
 |-----------|------|-----------|
 | **Clerk** | [clerk.com/docs](https://clerk.com/docs) | [Next.js](https://clerk.com/docs/reference/nextjs/overview), [Middleware](https://clerk.com/docs/reference/nextjs/clerk-middleware), [useAuth](https://clerk.com/docs/nextjs/reference/hooks/use-auth), [Organizations](https://clerk.com/docs/guides/organizations/overview), [Roles](https://clerk.com/docs/guides/organizations/control-access/roles-and-permissions) |
 
+### AI & LLM
+
+| Technology | Docs | Key Pages |
+|-----------|------|-----------|
+| **Vercel AI SDK** | [sdk.vercel.ai/docs](https://sdk.vercel.ai/docs) | [streamText](https://sdk.vercel.ai/docs/reference/ai-sdk-core/stream-text), [generateObject](https://sdk.vercel.ai/docs/reference/ai-sdk-core/generate-object), [Tool Calling](https://sdk.vercel.ai/docs/ai-sdk-core/tools-and-tool-calling), [useChat](https://sdk.vercel.ai/docs/reference/ai-sdk-ui/use-chat), [Providers](https://sdk.vercel.ai/providers) |
+| **OpenAI SDK** | [platform.openai.com/docs](https://platform.openai.com/docs) | [Chat Completions](https://platform.openai.com/docs/guides/text-generation), [Function Calling](https://platform.openai.com/docs/guides/function-calling), [Streaming](https://platform.openai.com/docs/api-reference/streaming) |
+| **MCP SDK** | [modelcontextprotocol.io](https://modelcontextprotocol.io/) | [Tools](https://modelcontextprotocol.io/docs/concepts/tools), [Resources](https://modelcontextprotocol.io/docs/concepts/resources), [Transports](https://modelcontextprotocol.io/docs/concepts/transports), [TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) |
+
+### Testing
+
+| Technology | Docs | Key Pages |
+|-----------|------|-----------|
+| **Vitest** | [vitest.dev](https://vitest.dev/) | [Configuration](https://vitest.dev/config/), [Mocking](https://vitest.dev/guide/mocking), [Coverage](https://vitest.dev/guide/coverage), [Workspace](https://vitest.dev/guide/workspace) |
+| **Playwright** | [playwright.dev](https://playwright.dev/docs/intro) | [Test Generator](https://playwright.dev/docs/codegen), [Authentication](https://playwright.dev/docs/auth), [Assertions](https://playwright.dev/docs/test-assertions), [Page Object Model](https://playwright.dev/docs/pom) |
+| **Testing Library** | [testing-library.com](https://testing-library.com/) | [React](https://testing-library.com/docs/react-testing-library/intro/), [Queries](https://testing-library.com/docs/queries/about), [jest-dom](https://github.com/testing-library/jest-dom) |
+
+### Drag & Drop
+
+| Technology | Docs | Key Pages |
+|-----------|------|-----------|
+| **dnd-kit** | [dndkit.com](https://dndkit.com/) | [Sortable](https://docs.dndkit.com/presets/sortable), [Droppable](https://docs.dndkit.com/api-documentation/droppable), [Sensors](https://docs.dndkit.com/api-documentation/sensors) |
+
 ---
 
 ## Mobile

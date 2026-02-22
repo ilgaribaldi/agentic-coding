@@ -119,6 +119,123 @@ export function useInvalidateOnOrgChange() {
 }
 ```
 
+## API Key Authentication
+
+Support programmatic access alongside session auth (for CLIs, agents, external integrations):
+
+### Key Format & Storage
+
+```typescript
+import { createHash, randomBytes } from "crypto"
+
+// Generate: prefix + random bytes
+// Use a short prefix to identify key type (e.g., sk_ for secret, pk_ for public)
+function generateApiKey(prefix = "<prefix>"): { raw: string; hash: string } {
+  const raw = `${prefix}_${randomBytes(16).toString("hex")}` // "<prefix>_abc123..."
+  const hash = createHash("sha256").update(raw).digest("hex")
+  return { raw, hash }
+}
+
+// Store the HASH in DB, show the RAW key to user ONCE
+const { raw, hash } = generateApiKey()
+await db.insert(<api-keys-table>).values({
+  userId,
+  keyHash: hash,
+  name: "<key-name>",
+  scopes: JSON.stringify(["<resource-a>:read", "<resource-a>:write"]),
+  expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days
+})
+// Return `raw` to user — never stored, never retrievable
+```
+
+### Verification Middleware
+
+```typescript
+const API_KEY_PREFIX = "<prefix>_" // Match your generateApiKey prefix
+
+app.use("*", async (c, next) => {
+  const authHeader = c.req.header("Authorization")
+  if (authHeader?.startsWith(`Bearer ${API_KEY_PREFIX}`)) {
+    const apiKey = authHeader.slice(7) // Remove "Bearer " prefix
+    const result = await <verifyApiKey>(apiKey)
+    if (result) {
+      c.set("<api-key-user-id>", result.userId)
+      c.set("<api-key-scopes>", result.scopes)
+    }
+  }
+  await next()
+})
+```
+
+## Scope-Based Authorization
+
+Fine-grained permissions using `resource:action` naming (like GitHub PATs):
+
+### Scope Definitions
+
+```typescript
+export const SCOPES = {
+  <RESOURCE_A>_READ: "<resource-a>:read",
+  <RESOURCE_A>_WRITE: "<resource-a>:write",
+  <RESOURCE_A>_DELETE: "<resource-a>:delete",
+  <RESOURCE_B>_READ: "<resource-b>:read",
+  <RESOURCE_B>_WRITE: "<resource-b>:write",
+  // ... add per resource
+} as const
+
+export type Scope = (typeof SCOPES)[keyof typeof SCOPES]
+```
+
+### Scope Checking
+
+```typescript
+export function hasScope(context: { scopes: string[] }, required: string): boolean {
+  return context.scopes.includes(required)
+}
+
+export function hasAllScopes(context: { scopes: string[] }, required: string[]): boolean {
+  return required.every(s => context.scopes.includes(s))
+}
+
+// Usage in route handler:
+app.post("/<resource>", async (c) => {
+  const scopes = c.get("<api-key-scopes>")
+  if (scopes && !hasScope({ scopes }, SCOPES.<RESOURCE_A>_WRITE)) {
+    return c.json({ error: "Insufficient scope: <resource-a>:write required" }, 403)
+  }
+  // ...
+})
+```
+
+### Scope Presets (for UI)
+
+```typescript
+export const SCOPE_PRESETS = {
+  READ_ONLY: [SCOPES.<RESOURCE_A>_READ],
+  READ_WRITE: [SCOPES.<RESOURCE_A>_READ, SCOPES.<RESOURCE_A>_WRITE],
+  FULL_ACCESS: Object.values(SCOPES),
+} as const
+```
+
+### Tool-to-Scope Mapping
+
+Map operation names to required scopes for dynamic authorization:
+
+```typescript
+const TOOL_SCOPES: Record<string, Scope> = {
+  <action_a>: SCOPES.<RESOURCE_A>_READ,
+  <action_b>: SCOPES.<RESOURCE_A>_WRITE,
+  <action_c>: SCOPES.<RESOURCE_A>_DELETE,
+  <action_d>: SCOPES.<RESOURCE_B>_WRITE,
+}
+
+function authorizeToolCall(toolName: string, scopes: string[]): boolean {
+  const required = TOOL_SCOPES[toolName]
+  if (!required) return false // Unknown tool
+  return scopes.includes(required)
+}
+```
+
 ## Provider Setup
 
 ```typescript

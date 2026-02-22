@@ -26,7 +26,7 @@
 ```toml
 # pyproject.toml
 [project]
-name = "my-project"
+name = "<project-name>"
 version = "0.1.0"
 requires-python = ">=3.12"
 
@@ -142,31 +142,31 @@ config_by_name = {
 ```python
 from flask_restx import Namespace, Resource, reqparse, fields
 
-api = Namespace("weather", description="Weather data operations")
+api = Namespace("<domain>", description="<Domain> data operations")
 
 # Request parser with validation
 parser = reqparse.RequestParser()
-parser.add_argument("lat", type=float, required=True, location="args",
-                    help="Latitude (-90 to 90)")
-parser.add_argument("lon", type=float, required=True, location="args",
-                    help="Longitude (-180 to 180)")
-parser.add_argument("var", type=str, required=False, location="args",
-                    help="Comma-separated variables")
+parser.add_argument("<param-a>", type=float, required=True, location="args",
+                    help="<Param A description>")
+parser.add_argument("<param-b>", type=float, required=True, location="args",
+                    help="<Param B description>")
+parser.add_argument("<param-c>", type=str, required=False, location="args",
+                    help="Comma-separated <values>")
 
 # Response model
-response_model = api.model("WeatherResponse", {
-    "data": fields.Raw(description="Weather data"),
+response_model = api.model("<Domain>Response", {
+    "data": fields.Raw(description="<Domain> data"),
     "meta": fields.Raw(description="Metadata"),
 })
 
 @api.route("/")
-class WeatherAPI(Resource):
+class <Domain>API(Resource):
 
     @api.expect(parser, validate=True)
     @api.response(200, "Success", response_model)
     @api.response(400, "Invalid parameters")
     def get(self) -> tuple[dict, int]:
-        """Retrieve weather data."""
+        """Retrieve <domain> data."""
         args = parser.parse_args()
         # ... process request
         return {"data": result, "meta": metadata}, 200
@@ -195,7 +195,7 @@ def get_config(use_env: bool = False) -> dict:
             "EXTERNAL_API_KEY": os.environ["EXTERNAL_API_KEY"],
             "EXTERNAL_API_BASE_URL": os.environ["EXTERNAL_API_BASE_URL"],
         }
-    return get_secret("my-app/config")
+    return get_secret("<app-name>/config")
 ```
 
 - `--use-env` flag for local development (reads `.env` or shell vars)
@@ -242,26 +242,26 @@ CMD ["src.app.lambda_handler"]
 import argparse
 
 def main():
-    parser = argparse.ArgumentParser(description="Run risk computation")
+    parser = argparse.ArgumentParser(description="<CLI description>")
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--model_id", type=str, help="Run single model")
-    group.add_argument("--org", type=str, help="Run all models for org")
-    group.add_argument("--all", action="store_true", help="Run all models")
+    group.add_argument("--<resource>_id", type=str, help="Run single <resource>")
+    group.add_argument("--<scope>", type=str, help="Run all <resources> for <scope>")
+    group.add_argument("--all", action="store_true", help="Run all <resources>")
 
     parser.add_argument("--use-env", action="store_true",
                         help="Use env vars instead of AWS Secrets Manager")
     parser.add_argument("--n_jobs", type=int, default=1,
-                        help="Parallel workers for hazard processing")
+                        help="Parallel workers for processing")
 
     args = parser.parse_args()
 
     config = get_config(use_env=args.use_env)
 
-    if args.model_id:
-        run_model(args.model_id, config, args.n_jobs)
-    elif args.org:
-        run_org(args.org, config, args.n_jobs)
+    if getattr(args, "<resource>_id", None):
+        run_single(getattr(args, "<resource>_id"), config, args.n_jobs)
+    elif getattr(args, "<scope>", None):
+        run_scoped(getattr(args, "<scope>"), config, args.n_jobs)
     elif args.all:
         run_all(config, args.n_jobs)
 
@@ -315,12 +315,12 @@ class InputError(Exception):
     """Invalid input argument."""
     pass
 
-class DatasetNotAvailableError(InputError):
-    """Dataset with given conditions does not exist."""
+class <Resource>NotAvailableError(InputError):
+    """<Resource> with given conditions does not exist."""
     pass
 
-class VariableNotAvailableError(InputError):
-    """Variable does not exist within dataset."""
+class <Attribute>NotAvailableError(InputError):
+    """<Attribute> does not exist within <resource>."""
     pass
 
 class NoDataError(Exception):

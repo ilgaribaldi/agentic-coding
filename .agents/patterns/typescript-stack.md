@@ -34,8 +34,8 @@ project/
 │   ├── db/            # Drizzle schema (source of truth, no runtime)
 │   ├── ui/            # Shadcn components (70+ components)
 │   ├── config/        # Tailwind preset, TypeScript base configs
-│   ├── utils/         # Date, unit, alert, CSV, map utilities
-│   └── constants/     # Weather, risk, agriculture constants
+│   ├── utils/         # Date, format, CSV, map utilities
+│   └── constants/     # Domain-specific constants, enums, lookup tables
 ├── turbo.json         # Task pipeline
 └── package.json       # Bun workspaces
 ```
