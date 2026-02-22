@@ -2,8 +2,8 @@
 
 <!--
   Template for a new pattern doc.
-  Usage: cp _templates/pattern.md patterns/my-pattern.md
-  After filling in: add an entry to REGISTRY.md
+  Usage: cp templates/pattern.md patterns/my-pattern.md
+  After filling in: add an entry to AGENTS.md
 -->
 
 ## Stack Choices

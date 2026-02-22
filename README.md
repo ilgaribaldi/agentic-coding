@@ -5,13 +5,14 @@ A portable knowledge base for AI-assisted software development. Drop it into any
 ## What's Inside
 
 ```
-.agents/
-├── patterns/        # 17 code pattern docs across TS, Python, and cross-platform
-├── agents/          # 5 sub-agent definitions for specialized tasks
-├── skills/          # 4 multi-step skill workflows
-├── skills/planning-with-files/plans/  # Implementation plans
-├── templates/       # Templates for adding new content
-└── AGENTS.md        # Master index with technology lookup table
+agentic-coding/
+├── AGENTS.md            # Master registry with technology lookup table
+├── patterns/            # 17 code pattern docs across TS, Python, and cross-platform
+├── templates/           # Templates for adding new content
+└── .agents/
+    ├── agents/          # 5 sub-agent definitions for specialized tasks
+    ├── skills/          # 4 multi-step skill workflows
+    └── skills/planning-with-files/plans/  # Implementation plans
 ```
 
 ### Patterns
@@ -20,7 +21,7 @@ Ready-to-use conventions for modern stacks. Each pattern doc includes stack choi
 
 | Domain | Patterns |
 |--------|----------|
-| **TypeScript / Frontend** | Next.js 15 App Router, Hono API routes, Drizzle ORM, TanStack Query v5, React 19 components, Shadcn/UI + Tailwind, Turborepo monorepos, Clerk auth, Vercel AI SDK, MCP server, Testing (Vitest/Playwright) |
+| **TypeScript / Frontend** | Next.js 15 App Router, Next.js project structure, Hono API routes, Drizzle ORM, TanStack Query v5, React 19 components, Shadcn/UI + Tailwind, Turborepo monorepos, Clerk auth, Vercel AI SDK, MCP server, Testing (Vitest/Playwright) |
 | **Python / Backend** | Flask, psycopg2, SQLAlchemy, uv, deployment, CLI patterns, retry logic, parallel processing |
 | **Data Science** | xarray/Zarr, NumPy, joblib, temporal operations |
 | **Cross-Platform** | Expo SDK 55, React Native, Electron 35 |
@@ -53,11 +54,11 @@ Multi-step workflows with templates and reference material:
 
 ### With Claude Code
 
-Clone or copy `.agents/` into your project root. Point your `CLAUDE.md` at it:
+Clone or copy into your project root. Point your `CLAUDE.md` at it:
 
 ```markdown
 ## Knowledge Base
-Read `AGENTS.md` for the full structure. Start with `.agents/AGENTS.md` to find relevant patterns.
+Read `AGENTS.md` for the full registry and technology lookup.
 ```
 
 ### With Other AI Coding Tools
@@ -70,16 +71,16 @@ Templates make it easy to add new patterns, libraries, or agents:
 
 ```bash
 # New pattern
-cp .agents/templates/pattern.md .agents/patterns/my-pattern.md
+cp templates/pattern.md patterns/my-pattern.md
 
 # New library reference
-cp .agents/templates/library.md .agents/patterns/my-library.md
+cp templates/library.md patterns/my-library.md
 
 # New agent
-cp .agents/templates/agent.md .agents/agents/my-agent.md
+cp templates/agent.md .agents/agents/my-agent.md
 ```
 
-After filling in the template, add an entry to `.agents/AGENTS.md`.
+After filling in the template, add an entry to `AGENTS.md`.
 
 ## Plans
 
@@ -92,4 +93,3 @@ Track implementation plans across sessions:
 ## License
 
 MIT
-# agentic-coding

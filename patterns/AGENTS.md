@@ -4,6 +4,7 @@
 
 ### TypeScript / Frontend
 - [typescript-stack.md](typescript-stack.md): TS monorepo foundations — Bun, Turborepo, naming, strict mode
+- [nextjs-structure.md](nextjs-structure.md): Next.js project structure — full app tree, adding routes/features/pages, naming cheatsheet
 - [nextjs-patterns.md](nextjs-patterns.md): Next.js 15 App Router — layouts, route groups, middleware, server/client
 - [hono-api-routes.md](hono-api-routes.md): Hono API routes — two-file pattern, Zod validation, RPC, middleware composition, dual auth
 - [drizzle-schema.md](drizzle-schema.md): Drizzle ORM — schema declaration, relations, Neon clients, CUID2, materialized paths
@@ -28,7 +29,7 @@
 - [documentation-links.md](documentation-links.md): Official doc URLs — 40+ technology links by category
 
 ### Upstream
-- [AGENTS.md](../AGENTS.md): Knowledge base registry (parent)
+- [AGENTS.md](../AGENTS.md): Master registry (root)
 
 ## Purpose
 Code patterns, conventions, and best practices organized by domain. Each pattern doc includes stack choices, code examples, naming conventions, and anti-patterns.
@@ -36,7 +37,7 @@ Code patterns, conventions, and best practices organized by domain. Each pattern
 ## Workflow
 1. Identify the technology or domain for your task.
 2. Load the matching pattern file from the index above.
-3. To add a new pattern: copy `../templates/pattern.md`, fill it in, add entries here and in the parent AGENTS.md.
+3. To add a new pattern: copy `templates/pattern.md`, fill it in, add entries here and in the root AGENTS.md.
 
 ## Do / Don't
 

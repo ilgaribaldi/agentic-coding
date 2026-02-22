@@ -2,8 +2,8 @@
 
 <!--
   Template for a new sub-agent definition.
-  Usage: cp _templates/agent.md agents/my-agent.md
-  After filling in: add an entry to REGISTRY.md
+  Usage: cp templates/agent.md .agents/agents/my-agent.md
+  After filling in: add an entry to AGENTS.md
 -->
 
 You are a specialized [domain] agent.

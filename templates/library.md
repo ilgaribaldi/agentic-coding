@@ -2,8 +2,8 @@
 
 <!--
   Template for a new library/framework reference.
-  Usage: cp _templates/library.md patterns/my-library.md
-  After filling in: add an entry to REGISTRY.md
+  Usage: cp templates/library.md patterns/my-library.md
+  After filling in: add an entry to AGENTS.md
 -->
 
 ## Overview
